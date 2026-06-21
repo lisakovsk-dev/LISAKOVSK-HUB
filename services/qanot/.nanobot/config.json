@@ -1,19 +1,43 @@
 {
     "providers": {
       "openrouter": {
-        "apiKey": "$OPENROUTER_API_KEY"
+        "apiKey": "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"
       }
     },
     "agents": {
       "defaults": {
         "workspace": "/app/.nanobot/workspace",
-        "model": "openrouter/free"
+        "model": "openrouter/free",
+        "model_router": {
+          "free": [
+            "openrouter/anthropic/claude-3-5-sonnet",
+            "openrouter/openai/gpt-4o",
+            "openrouter/qwen/qwen-3-8b",
+            "openrouter/google/gemini-2.5-flash",
+            "openrouter/deepseek/deepseek-r1-0528"
+          ],
+          "cheap": [
+            "openrouter/deepseek/deepseek-chat-v3.1",
+            "openrouter/qwen/qwen-2.5-coder-32b-instruct",
+            "openrouter/meta-llama/llama-4-maverick",
+            "openrouter/mistralai/mistral-7b-instruct"
+          ],
+          "expensive": [
+            "openrouter/anthropic/claude-3-7-sonnet",
+            "openrouter/openai/gpt-4.1"
+          ]
+        },
+        "complexity_threshold": 0.7,
+        "free_rate_limit": {
+          "requests_per_minute": 60,
+          "tokens_per_minute": 100000
+        }
       }
     },
     "channels": {
       "telegram": {
         "enabled": true,
-        "token": "$TELEGRAM_BOT_TOKEN",
+        "token": "8336899107:AAGCG5ijjYoA3LgVf1yX7R3AEHAu6lA4eSE",
         "allowFrom": []
       }
     }
