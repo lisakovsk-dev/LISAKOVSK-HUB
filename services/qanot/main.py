@@ -1,5 +1,11 @@
 import asyncio
-from qanot import start_bot
+from qanot import QanotAgent
+
+async def main():
+    # Создаем агента
+    agent = QanotAgent()
+    # Запускаем бота
+    await agent.run()
 
 if __name__ == "__main__":
-    asyncio.run(start_bot())
+    asyncio.run(main())
