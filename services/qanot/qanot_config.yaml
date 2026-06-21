@@ -1,0 +1,36 @@
+providers:
+  openrouter:
+    api_key: $OPENROUTER_API_KEY
+
+agents:
+  defaults:
+    # Основной роутер: сначала бесплатные, если лимит исчерпан — дешёвые
+    model_router:
+      # 1. Бесплатные (приоритет №1)
+      free:
+        - openrouter/anthropic/claude-3-5-sonnet
+        - openrouter/openai/gpt-4o
+        - openrouter/qwen/qwen-3-8b
+        - openrouter/google/gemini-2.5-flash
+        - openrouter/deepseek/deepseek-r1-0528
+      
+      # 2. Дешёвые (приоритет №2, если бесплатные лимиты исчерпаны)
+      cheap:
+        - openrouter/deepseek/deepseek-chat-v3.1
+        - openrouter/qwen/qwen-2.5-coder-32b-instruct
+        - openrouter/meta-llama/llama-4-maverick
+        - openrouter/mistralai/mistral-7b-instruct
+      
+      # 3. Мощные платные (приоритет №3, только для критических задач)
+      expensive:
+        - openrouter/anthropic/claude-3-7-sonnet
+        - openrouter/openai/gpt-4.1
+
+    # Порог сложности для переключения на платные модели
+    # 0.0 — всегда бесплатные, 1.0 — всегда платные
+    complexity_threshold: 0.7
+
+    # Лимиты запросов к бесплатным моделям (настраивается под OpenRouter)
+    free_rate_limit:
+      requests_per_minute: 60
+      tokens_per_minute: 100000
