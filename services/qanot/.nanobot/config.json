@@ -1,0 +1,20 @@
+{
+    "providers": {
+      "openrouter": {
+        "apiKey": "$OPENROUTER_API_KEY"
+      }
+    },
+    "agents": {
+      "defaults": {
+        "workspace": "/app/.nanobot/workspace",
+        "model": "openrouter/free"
+      }
+    },
+    "channels": {
+      "telegram": {
+        "enabled": true,
+        "token": "$TELEGRAM_BOT_TOKEN",
+        "allowFrom": []
+      }
+    }
+  }

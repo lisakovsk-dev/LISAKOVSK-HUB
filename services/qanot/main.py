@@ -1,6 +1,13 @@
-import qanot
+import os
+import subprocess
+import time
 
-print("Доступные атрибуты в пакете qanot:")
-for attr in dir(qanot):
-    if not attr.startswith("_"):
-        print(f"- {attr}")
+if __name__ == "__main__":
+    # Проверяем, что конфиг существует (иначе запускаем onboard)
+    if not os.path.exists("/root/.nanobot/config.json"):
+        print("⚙️ Initializing nanobot config...")
+        subprocess.run(["nanobot", "onboard"], check=True)
+    
+    # Запускаем шлюз
+    print("🚀 Starting nanobot gateway...")
+    subprocess.run(["nanobot", "gateway"], check=True)
