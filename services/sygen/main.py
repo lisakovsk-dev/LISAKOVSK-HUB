@@ -6,18 +6,39 @@ from pathlib import Path
 if __name__ == "__main__":
     print("🧠 Preparing Sygen environment...")
     
-    # Убедимся, что конфиг есть
-    config_dir = Path.cwd() / ".sygen"
-    config_dir.mkdir(parents=True, exist_ok=True)
+    # Устанавливаем Gemini CLI в локальную папку node_modules
+    print("📦 Installing Gemini CLI locally...")
+    install_result = subprocess.run(
+        ["npm", "install", "@google/gemini-cli"],
+        cwd=Path.cwd(),
+        capture_output=True,
+        text=True
+    )
     
-    # Устанавливаем переменную для автоматического согласия
-    os.environ["SYGEN_AUTO_ACCEPT"] = "true"
+    if install_result.returncode != 0:
+        print("❌ Failed to install Gemini CLI.")
+        print(install_result.stderr)
+        sys.exit(1)
     
-    # Запускаем Sygen с флагом неинтерактивного режима
+    print("✅ Gemini CLI installed locally.")
+    
+    # Добавляем ./node_modules/.bin в PATH
+    bin_path = Path.cwd() / "node_modules" / ".bin"
+    os.environ["PATH"] = f"{bin_path}:{os.environ.get('PATH', '')}"
+    
+    # Проверяем, что gemini теперь виден
+    check_result = subprocess.run(["gemini", "--version"], capture_output=True, text=True)
+    if check_result.returncode == 0:
+        print(f"✅ Gemini CLI version: {check_result.stdout.strip()}")
+    else:
+        print("⚠️ Gemini CLI not found in PATH.")
+    
+    # Настраиваем API-ключ
+    api_key = os.getenv("GEMINI_API_KEY")
+    if api_key:
+        os.environ["GEMINI_API_KEY"] = api_key
+        print("✅ Gemini API Key configured.")
+    
+    # Запускаем Sygen
     print("🧠 Starting Sygen orchestrator...")
-    subprocess.run([
-        "sygen",
-        "--config", str(config_dir / "config.json"),
-        "--no-input",  # отключаем интерактивный ввод
-        "--accept-disclaimer"  # автоматически соглашаемся с условиями
-    ])
+    subprocess.run(["sygen"])
