@@ -1,0 +1,8 @@
+{
+    "telegram_token": "8336899107:AAGCG5ijjYoA3LgVf1yX7R3AEHAu6lA4eSE",
+    "model": "gemini-2.5-flash",
+    "model_provider": "google",
+    "allowed_user_ids": [8614783423],
+    "disclaimer_accepted": true,
+    "workspace": "/app/.sygen/workspace"
+  }

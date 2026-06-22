@@ -5,19 +5,25 @@ from pathlib import Path
 
 if __name__ == "__main__":
     print("🧠 Preparing Sygen environment...")
-
-    # Устанавливаем Gemini CLI в локальную папку node_modules
-    print("📦 Installing Gemini CLI locally...")
     
-    # Создаём папку для npm-пакетов
+    # Создаём папку для конфига
+    config_dir = Path("/app/.sygen")
+    config_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Копируем конфиг, если его нет
+    config_file = config_dir / "config.json"
+    if not config_file.exists():
+        import shutil
+        shutil.copy("/app/services/sygen/.sygen/config.json", config_file)
+        print("✅ Sygen config copied.")
+
+    # Устанавливаем Gemini CLI локально
     npm_prefix = Path.cwd() / "npm_packages"
     npm_prefix.mkdir(exist_ok=True)
     
-    # Устанавливаем Gemini CLI с указанием префикса
     install_result = subprocess.run(
         ["npm", "install", "@google/gemini-cli", "--prefix", str(npm_prefix)],
-        capture_output=True,
-        text=True
+        capture_output=True, text=True
     )
     
     if install_result.returncode != 0:
@@ -27,25 +33,14 @@ if __name__ == "__main__":
     
     print("✅ Gemini CLI installed locally.")
     
-    # Добавляем локальную папку с бинарниками в PATH
     bin_path = npm_prefix / "node_modules" / ".bin"
     os.environ["PATH"] = f"{bin_path}:{os.environ.get('PATH', '')}"
     
-    # Проверяем, что gemini доступен
-    check_result = subprocess.run(["gemini", "--version"], capture_output=True, text=True)
-    if check_result.returncode == 0:
-        print(f"✅ Gemini CLI version: {check_result.stdout.strip()}")
-    else:
-        print("⚠️ Gemini CLI installed but not found in PATH.")
-
-    # Настраиваем авторизацию через API-ключ
     api_key = os.getenv("GEMINI_API_KEY")
     if api_key:
         os.environ["GEMINI_API_KEY"] = api_key
         print("✅ Gemini API Key configured.")
-    else:
-        print("⚠️ GEMINI_API_KEY not found. Add it to Render environment variables.")
-
-    # Запускаем Sygen
+    
+    # Запускаем Sygen с указанием конфига
     print("🧠 Starting Sygen orchestrator...")
-    subprocess.run(["sygen"])
+    subprocess.run(["sygen", "--config", "/app/.sygen/config.json"])
