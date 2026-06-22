@@ -6,16 +6,18 @@ from pathlib import Path
 if __name__ == "__main__":
     print("🧠 Preparing Sygen environment...")
     
-    # Создаём папку для конфига
-    config_dir = Path("/app/.sygen")
+    # Используем локальную папку .sygen внутри проекта
+    config_dir = Path.cwd() / ".sygen"
     config_dir.mkdir(parents=True, exist_ok=True)
     
     # Копируем конфиг, если его нет
     config_file = config_dir / "config.json"
     if not config_file.exists():
         import shutil
-        shutil.copy("/app/services/sygen/.sygen/config.json", config_file)
+        shutil.copy(Path.cwd() / ".sygen" / "config.json", config_file)
         print("✅ Sygen config copied.")
+    else:
+        print("✅ Sygen config already exists.")
 
     # Устанавливаем Gemini CLI локально
     npm_prefix = Path.cwd() / "npm_packages"
@@ -41,6 +43,6 @@ if __name__ == "__main__":
         os.environ["GEMINI_API_KEY"] = api_key
         print("✅ Gemini API Key configured.")
     
-    # Запускаем Sygen с указанием конфига
+    # Запускаем Sygen с указанием локального конфига
     print("🧠 Starting Sygen orchestrator...")
-    subprocess.run(["sygen", "--config", "/app/.sygen/config.json"])
+    subprocess.run(["sygen", "--config", str(config_dir / "config.json")])
