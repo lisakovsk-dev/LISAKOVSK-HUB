@@ -36,9 +36,7 @@ if __name__ == "__main__":
         os.environ["GEMINI_API_KEY"] = api_key
         print("✅ Gemini API Key configured.")
     
-    # Попытка обойти дисплеймер
-    os.environ["SYGEN_DISCLAIMER_ACCEPTED"] = "true"
-    
-    # Запускаем Sygen с флагом --yes, если поддерживается
+    # --- ОБХОД ДИСПЛЕЙМЕРА ЧЕРЕЗ yes ---
     print("🧠 Starting Sygen orchestrator...")
-    subprocess.run(["sygen", "--yes"])  # или ["sygen", "--accept-disclaimer"]
+    # Команда yes отправляет 'y' на любой вопрос, включая дисплеймер
+    subprocess.run("yes y | sygen", shell=True)
