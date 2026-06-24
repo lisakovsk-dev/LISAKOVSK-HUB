@@ -1,1 +1,0 @@
-"""Job Lisakovsk Telegram bot."""
