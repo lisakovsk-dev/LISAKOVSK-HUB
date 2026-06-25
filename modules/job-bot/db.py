@@ -8,7 +8,7 @@ import logging
 
 from supabase import Client, create_client
 
-from job_lisakovsk_bot.constants import (
+from constants import (
     FEATURE_PIN_VACANCY,
     FEATURE_UNLIMITED_VACANCIES,
     FEATURE_VIP_SEEKER,
@@ -18,7 +18,7 @@ from job_lisakovsk_bot.constants import (
     VACANCY_STATUS_CLOSED,
     VACANCY_STATUS_REJECTED,
 )
-from job_lisakovsk_bot.services.limits import day_key, month_key
+from services.limits import day_key, month_key
 
 logger = logging.getLogger(__name__)
 
