@@ -17,75 +17,108 @@ class Orchestrator:
     async def handle_request(self, chat_id: str, text: str):
         state = self.sessions.get(chat_id)
 
+        # 11. Confirmation check
         if state and state.get("awaiting_confirmation"):
-            if text.lower() in ["confirm", "yes", "подтверждаю", "да"]:
-                await self.dispatch_tasks(chat_id, state["pending_tasks_json"])
+            if text.lower() in ["confirm", "yes", "подтверждаю", "да", "a", "b", "c", "а", "б", "в"]:
+                # If they just said 'yes', we use the recommended one (usually A or specified in state)
+                chosen_variant = text.lower()
+                if chosen_variant in ["confirm", "yes", "подтверждаю", "да"]:
+                    chosen_variant = state.get("recommended_variant", "a")
+
+                # Logic to map variant to specific task list
+                await self.dispatch_tasks(chat_id, state["variants"][chosen_variant]["plan_json"])
                 self.sessions[chat_id] = None
             elif text.lower() == "cancel":
                 self.sessions[chat_id] = None
                 await self.messenger.send_message(chat_id, "Request cancelled.")
             else:
-                await self.messenger.send_message(chat_id, "Please confirm the plan (Yes/Confirm) or send 'cancel'.")
+                await self.messenger.send_message(chat_id, "Please confirm the plan (A/B/C or Yes/Confirm) or send 'cancel'.")
             return
 
-        # 1-4: Analysis
-        goal_prompt = f"Analyze request and define goal: {text}"
-        goal = await self.llm.generate(goal_prompt, system_prompt=self.identity)
+        # Mandatory 11-step cycle (logical flow)
+        # 1. Understand request, 2. Define goal, 3. Info gathering, 4. Search
+        analysis_prompt = f"""You are Jules. Follow the mandatory 11-step cycle.
+1. Understand: {text}
+2. Define Goal.
+3. Check if info is missing.
+4. Perform search if needed.
 
-        # 5-10: Planning with 3 variants
-        planning_prompt = f"""Decompose the goal into 3 solution variants (A, B, C) as per requirements.
-Goal: {goal}
-
-Each variant must include: Pros, Cons, Risks, Timeline.
-Also, provide the DETAILED PLAN for the recommended variant in JSON format at the end.
-
-Available Skills: web_search, report_generation, github_analysis, monetization_scan, architecture_review.
-
-JSON Format for the plan:
-[
-  {{
-    "title": "Task Title",
-    "model": "deepseek-chat",
-    "skills": ["web_search"],
-    "instructions": ["Step 1", "Step 2"],
-    "expected_output": "Markdown report"
-  }}
-]
+Output ONLY the DEFINED GOAL and a brief analysis.
 """
-        full_response = await self.llm.generate(planning_prompt, system_prompt=self.identity)
+        goal_analysis = await self.llm.generate(analysis_prompt, system_prompt=self.identity)
 
-        # Present variants and JSON to user
-        await self.messenger.send_message(chat_id, f"Goal: {goal}\n\n{full_response}\n\nDo you confirm the recommended plan? (Yes/No)")
+        # 5. Decomposition, 6. Skill Audit, 7. Skill Check, 8. Solution Variants, 9. Plan preparation
+        planning_prompt = f"""Based on the Goal: {goal_analysis}
 
-        self.sessions[chat_id] = {
-            "awaiting_confirmation": True,
-            "goal": goal,
-            "pending_tasks_json": full_response
-        }
+Perform steps 5-9:
+5. Decomposition.
+6. Skill Audit (Available: web_search, report_generation, github_analysis, monetization_scan, architecture_review).
+7. Check Skill availability.
+8. Formulate 3 variants (A, B, C).
+   Variant A: Pros, Cons, Risks, Timeline.
+   Variant B: Pros, Cons, Risks, Timeline.
+   Variant C: Pros, Cons, Risks, Timeline.
+9. Prepare detailed plans for each.
 
-    async def dispatch_tasks(self, chat_id, full_text):
-        await self.messenger.send_message(chat_id, "🚀 Dispatching tasks to Worker Pool...")
+Output the 3 variants for the user in a readable format.
+Then, at the end, provide a JSON block containing the task lists for each variant.
+
+Recommended Variant: A
+
+JSON Format:
+```json
+{{
+  "a": [ {{ "title": "...", "model": "...", "skills": [...], "instructions": [...], "expected_output": "..." }} ],
+  "b": [ ... ],
+  "c": [ ... ]
+}}
+```
+"""
+        full_planning_response = await self.llm.generate(planning_prompt, system_prompt=self.identity)
+
+        # 10. Show plan to user
+        display_text = f"🎯 Goal: {goal_analysis}\n\n{full_planning_response}\n\nWhich variant do you choose? (A/B/C)"
+        await self.messenger.send_message(chat_id, display_text)
+
+        # Parse JSON from response
         try:
-            # Extract JSON from the full response
-            clean_json = full_text.strip()
+            clean_json = full_planning_response.strip()
             if "```json" in clean_json:
                 clean_json = clean_json.split("```json")[1].split("```")[0].strip()
-            elif "```" in clean_json:
-                parts = clean_json.split("```")
-                for part in reversed(parts):
-                    if part.strip().startswith("[") or part.strip().startswith("{"):
-                        clean_json = part.strip()
-                        break
 
-            tasks_data = json.loads(clean_json)
+            variants_data = json.loads(clean_json)
 
+            self.sessions[chat_id] = {
+                "awaiting_confirmation": True,
+                "goal": goal_analysis,
+                "variants": {
+                    "a": {"plan_json": variants_data.get("a", [])},
+                    "b": {"plan_json": variants_data.get("b", [])},
+                    "c": {"plan_json": variants_data.get("c", [])},
+                    "а": {"plan_json": variants_data.get("a", [])},
+                    "б": {"plan_json": variants_data.get("b", [])},
+                    "в": {"plan_json": variants_data.get("c", [])}
+                },
+                "recommended_variant": "a"
+            }
+        except Exception as e:
+            print(f"Error parsing planning JSON: {e}")
+            await self.messenger.send_message(chat_id, "⚠️ Error in plan generation. Please try again.")
+
+    async def dispatch_tasks(self, chat_id, tasks_data):
+        if not tasks_data:
+            await self.messenger.send_message(chat_id, "❌ No tasks to dispatch.")
+            return
+
+        await self.messenger.send_message(chat_id, f"🚀 Dispatching {len(tasks_data)} tasks to Worker Pool...")
+        try:
             for t_data in tasks_data:
                 task = Task(
                     title=t_data["title"],
-                    model=t_data["model"],
-                    skills=t_data["skills"],
-                    instructions=t_data["instructions"],
-                    expected_output=t_data["expected_output"]
+                    model=t_data.get("model", "deepseek-chat"),
+                    skills=t_data.get("skills", []),
+                    instructions=t_data.get("instructions", []),
+                    expected_output=t_data.get("expected_output", "Markdown")
                 )
                 async with httpx.AsyncClient() as client:
                     await client.post(
@@ -94,6 +127,6 @@ JSON Format for the plan:
                         headers={"Content-Type": "application/json"}
                     )
 
-            await self.messenger.send_message(chat_id, f"✅ {len(tasks_data)} tasks queued successfully.")
+            await self.messenger.send_message(chat_id, f"✅ Tasks queued successfully.")
         except Exception as e:
             await self.messenger.send_message(chat_id, f"❌ Error dispatching tasks: {e}")

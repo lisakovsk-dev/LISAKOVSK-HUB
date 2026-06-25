@@ -1,9 +1,24 @@
 llm:
   api_key: "YOUR_OPENROUTER_KEY"
-  model: "openai/gpt-4o"
+  model: "deepseek/deepseek-chat"
+  base_url: "https://openrouter.ai/api/v1"
 
 telegram:
   token: "YOUR_TELEGRAM_TOKEN"
+
+github:
+  token: "YOUR_GITHUB_TOKEN"
+  owner: "lisakovsk-dev"
+  repository: "LISAKOVSK-HUB"
+  branch: "feat/ai-office-template-mvp"
+
+notion:
+  token: "YOUR_NOTION_TOKEN"
+  database_id: "YOUR_DATABASE_ID"
+
+supabase:
+  url: "YOUR_SUPABASE_URL"
+  key: "YOUR_SUPABASE_KEY"
 
 manager:
   url: "http://localhost:8000"

@@ -8,10 +8,11 @@ import yaml
 from Triada.common.models import Task, Heartbeat
 
 class UniversalWorker:
-    def __init__(self, worker_id, manager_url, skills_dir="Triada/skills/", llm_provider=None):
+    def __init__(self, worker_id, manager_url, skills_dir="Triada/skills/", agents_dir="agents/", llm_provider=None):
         self.worker_id = worker_id
         self.manager_url = manager_url
         self.skills_dir = skills_dir
+        self.agents_dir = agents_dir
         self.llm = llm_provider
         self.status = "idle"
         self.current_task = None
@@ -46,12 +47,22 @@ class UniversalWorker:
                     print(f"Failed to fetch task: {e}")
             await asyncio.sleep(5)
 
-    def load_skill(self, skill_name):
-        skill_path = os.path.join(self.skills_dir, skill_name, "SKILL.md")
-        if not os.path.exists(skill_path):
-            return None
+    def load_markdown_resource(self, resource_name, base_dir):
+        # Support both resource_name and resource_name.md
+        if not resource_name.endswith(".md"):
+            resource_path = os.path.join(base_dir, f"{resource_name}.md")
+        else:
+            resource_path = os.path.join(base_dir, resource_name)
 
-        with open(skill_path, 'r') as f:
+        if not os.path.exists(resource_path):
+            # Also check if it's a directory containing SKILL.md (legacy skill structure)
+            skill_dir_path = os.path.join(base_dir, resource_name, "SKILL.md")
+            if os.path.exists(skill_dir_path):
+                resource_path = skill_dir_path
+            else:
+                return None
+
+        with open(resource_path, 'r') as f:
             content = f.read()
 
         if content.startswith('---'):
@@ -70,16 +81,23 @@ class UniversalWorker:
         print(f"Worker {self.worker_id} processing task {self.current_task.id}")
 
         try:
-            # 1. Load Skills
-            skill_instructions = []
+            # 1. Load Resources (Skills and Agent instructions)
+            instructions_block = []
+
+            # Load specific skills
             for skill_name in self.current_task.skills:
-                skill = self.load_skill(skill_name)
+                skill = self.load_markdown_resource(skill_name, self.skills_dir)
                 if skill:
-                    skill_instructions.append(f"Skill: {skill_name}\nInstructions: {skill['instructions']}")
+                    instructions_block.append(f"Skill: {skill_name}\nInstructions: {skill['instructions']}")
+                else:
+                    # Try agents directory too
+                    agent = self.load_markdown_resource(skill_name, self.agents_dir)
+                    if agent:
+                        instructions_block.append(f"Agent Persona: {skill_name}\nInstructions: {agent['instructions']}")
 
             # 2. Prepare Prompt
             system_prompt = f"You are a Universal Worker. Your task is: {self.current_task.title}\n\n"
-            system_prompt += "Skills Instructions:\n" + "\n\n".join(skill_instructions)
+            system_prompt += "Resource Instructions:\n" + "\n\n".join(instructions_block)
 
             prompt = f"Context: {self.current_task.context}\n"
             prompt += f"Instructions: {self.current_task.instructions}\n"

@@ -9,13 +9,17 @@ async def test_distributed_architecture_flow():
     # Mock goal definition and planning with 3 variants + JSON
     llm.generate.side_effect = [
         "Goal: Analyze Market", # Goal
-        "Variant A: ...\nVariant B: ...\nVariant C: ...\n\n```json\n" + json.dumps([{
-            "title": "Search competitors",
-            "model": "deepseek-chat",
-            "skills": ["web_search"],
-            "instructions": ["Search TOP 5"],
-            "expected_output": "list"
-        }]) + "\n```" # Planning response
+        "Variant A: ...\nVariant B: ...\nVariant C: ...\n\n```json\n" + json.dumps({
+            "a": [{
+                "title": "Search competitors",
+                "model": "deepseek-chat",
+                "skills": ["web_search"],
+                "instructions": ["Search TOP 5"],
+                "expected_output": "list"
+            }],
+            "b": [],
+            "c": []
+        }) + "\n```" # Planning response
     ]
 
     messenger = AsyncMock()
@@ -29,6 +33,10 @@ async def test_distributed_architecture_flow():
     await orchestrator.handle_request(chat_id, "Find competitors for my AI project")
 
     # Verify Orchestrator is waiting for confirmation
+    if chat_id not in orchestrator.sessions:
+        print("Session not found - likely failed parsing JSON in handle_request")
+        return
+
     assert orchestrator.sessions[chat_id]["awaiting_confirmation"] is True
     print("Orchestrator is awaiting confirmation.")
 
