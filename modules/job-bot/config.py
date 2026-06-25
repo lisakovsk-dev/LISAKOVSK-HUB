@@ -4,7 +4,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from dotenv import load_dotenv
-load_dotenv("job_lisakovsk_bot/.env")
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     webhook_path: str = Field(default="/webhook", alias="WEBHOOK_PATH")
 
     model_config = SettingsConfigDict(
-    env_file="job_lisakovsk_bot/.env",
+    env_file=".env",
     env_file_encoding="utf-8",
     extra="ignore"
 )
