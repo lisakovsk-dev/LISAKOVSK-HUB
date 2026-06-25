@@ -12,6 +12,7 @@ class Orchestrator:
         self.messenger = messenger_provider
         self.manager_url = manager_url
         self.sessions = {} # chat_id -> state
+        self.identity = "You are Jules, an extremely skilled software engineer. You are the Triada Orchestrator."
 
     async def handle_request(self, chat_id: str, text: str):
         state = self.sessions.get(chat_id)
@@ -29,7 +30,7 @@ class Orchestrator:
 
         # 1-4: Analysis
         goal_prompt = f"Analyze request and define goal: {text}"
-        goal = await self.llm.generate(goal_prompt, system_prompt="You are the AI Office Orchestrator.")
+        goal = await self.llm.generate(goal_prompt, system_prompt=self.identity)
 
         # 5-10: Planning with 3 variants
         planning_prompt = f"""Decompose the goal into 3 solution variants (A, B, C) as per requirements.
@@ -51,7 +52,7 @@ JSON Format for the plan:
   }}
 ]
 """
-        full_response = await self.llm.generate(planning_prompt, system_prompt="You are the AI Office Planner.")
+        full_response = await self.llm.generate(planning_prompt, system_prompt=self.identity)
 
         # Present variants and JSON to user
         await self.messenger.send_message(chat_id, f"Goal: {goal}\n\n{full_response}\n\nDo you confirm the recommended plan? (Yes/No)")
