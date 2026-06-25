@@ -6,10 +6,10 @@ from datetime import UTC, datetime
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from job_lisakovsk_bot.config import Settings
-from job_lisakovsk_bot.db import SupabaseRepository
-from job_lisakovsk_bot.keyboards.job_inline import weekly_stats_keyboard
-from job_lisakovsk_bot.services.job_text import weekly_stats_text
+from config import Settings
+from db import SupabaseRepository
+from keyboards.job_inline import weekly_stats_keyboard
+from services.job_text import weekly_stats_text
 
 logger = logging.getLogger(__name__)
 

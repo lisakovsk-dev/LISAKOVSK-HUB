@@ -12,8 +12,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, ForceReply, Message
 
 
-from job_lisakovsk_bot.config import Settings
-from job_lisakovsk_bot.constants import (
+from config import Settings
+from constants import (
     FEATURE_PIN_VACANCY,
     FEATURE_UNLIMITED_VACANCIES,
     FEATURE_URGENT_BROADCAST,
@@ -21,8 +21,8 @@ from job_lisakovsk_bot.constants import (
     PAYMENT_TYPE_MANUAL,
 )
 
-from job_lisakovsk_bot.db import SupabaseRepository
-from job_lisakovsk_bot.keyboards.job_inline import (
+from db import SupabaseRepository
+from keyboards.job_inline import (
     employer_candidates_keyboard,
     admin_manual_payment_keyboard,
     edit_vacancy_keyboard,
@@ -54,8 +54,8 @@ from job_lisakovsk_bot.keyboards.job_inline import (
     confirm_salary_edit_keyboard,
     confirm_schedule_edit_keyboard,
     confirm_title_edit_keyboard,
-    )
-from job_lisakovsk_bot.services.job_text import (
+)
+from services.job_text import (
     admin_stats_text,
     employer_stats_text,
     seeker_card,
@@ -64,15 +64,15 @@ from job_lisakovsk_bot.services.job_text import (
     vacancy_public_text,
     format_salary,
 )
-from job_lisakovsk_bot.services.limits import (
+from services.limits import (
     can_create_vacancy,
     can_send_notification,
     has_free_monthly_urgent,
     has_free_vip_bonus,
 )
-from job_lisakovsk_bot.services.payments import get_feature_request
-from job_lisakovsk_bot.services.referrals import parse_referral_arg, referral_bonus_text, referral_deep_link
-from job_lisakovsk_bot.services.salary import parse_salary_range
+from services.payments import get_feature_request
+from services.referrals import parse_referral_arg, referral_bonus_text, referral_deep_link
+from services.salary import parse_salary_range
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from pathlib import Path
@@ -1870,7 +1870,7 @@ async def buy_feature(callback: CallbackQuery, repo: SupabaseRepository, setting
         
         # Для закрепа нужен выбор количества дней
         if feature == FEATURE_PIN_VACANCY and vacancy_id:
-            from job_lisakovsk_bot.handlers.job import PinDaysForm
+            from handlers.job import PinDaysForm
             await callback.message.answer("📌 Выберите количество дней (минимум 3):")
             return
         

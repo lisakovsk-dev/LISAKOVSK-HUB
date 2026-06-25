@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from job_lisakovsk_bot.constants import FEATURE_PRICES_STARS, FEATURE_TITLES
+from constants import FEATURE_PRICES_STARS, FEATURE_TITLES
 
 
 @dataclass(frozen=True)

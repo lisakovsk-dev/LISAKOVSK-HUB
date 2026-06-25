@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from job_lisakovsk_bot.constants import NOT_IMPORTANT
+from constants import NOT_IMPORTANT
 
 
 def parse_salary_range(text: str) -> tuple[int | None, int | None]:

@@ -12,7 +12,7 @@ from aiogram.types import (
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from job_lisakovsk_bot.constants import (
+from constants import (
     FEATURE_PIN_VACANCY,
     FEATURE_UNLIMITED_VACANCIES,
     FEATURE_URGENT_BROADCAST,
