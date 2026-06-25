@@ -1,0 +1,38 @@
+services:
+  # 1. Worker Pool Manager (Internal API)
+  - type: web
+    name: ai-office-manager
+    env: docker
+    dockerContext: .
+    dockerfilePath: Triada/Dockerfile
+    dockerCommand: python Triada/manager/main.py
+    plan: free
+    region: frankfurt
+
+  # 2. Orchestrator (Long-running process for Telegram)
+  - type: worker
+    name: ai-office-orchestrator
+    env: docker
+    dockerContext: .
+    dockerfilePath: Triada/Dockerfile
+    dockerCommand: python Triada/orchestrator/main.py
+    envVars:
+      - key: MANAGER_URL
+        fromService:
+          name: ai-office-manager
+          type: web
+          property: host
+
+  # 3. Universal Worker (Multiple instances)
+  - type: worker
+    name: ai-office-worker
+    env: docker
+    dockerContext: .
+    dockerfilePath: Triada/Dockerfile
+    dockerCommand: python Triada/worker/main.py
+    envVars:
+      - key: MANAGER_URL
+        fromService:
+          name: ai-office-manager
+          type: web
+          property: host

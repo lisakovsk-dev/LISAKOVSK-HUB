@@ -1,0 +1,9 @@
+llm:
+  api_key: "YOUR_OPENROUTER_KEY"
+  model: "openai/gpt-4o"
+
+telegram:
+  token: "YOUR_TELEGRAM_TOKEN"
+
+manager:
+  url: "http://localhost:8000"
